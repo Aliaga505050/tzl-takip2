@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="tr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json"><title>TZL Takip</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#101828;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:auto;padding:16px}.hero{background:linear-gradient(145deg,#0b1220,#123c2a);color:white;border-radius:24px;padding:22px;box-shadow:0 10px 30px #0001}
+.top{display:flex;justify-content:space-between}.tag{font-weight:800;letter-spacing:.08em}.status{font-size:12px;opacity:.75}
+.price{font-size:42px;font-weight:800;margin:28px 0 3px}.unit{font-size:13px;opacity:.7}.change{display:inline-block;margin-top:12px;padding:7px 10px;border-radius:99px;background:#ffffff18;font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.card{background:white;border:1px solid #e4e7ec;border-radius:18px;padding:16px;box-shadow:0 5px 18px #1018280a}.wide{grid-column:1/-1}
+.label{font-size:12px;color:#667085;margin-bottom:8px}.value{font-size:20px;font-weight:800}.big{font-size:24px}.profit{color:#087443}.loss{color:#b42318}
+.row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #e4e7ec}.row:last-child{border:0}.row span{color:#667085}
+.section{font-size:17px;font-weight:800;margin:24px 3px 10px}label{display:block;margin-top:12px;font-size:13px;font-weight:700}
+input{width:100%;margin-top:7px;border:1px solid #e4e7ec;border-radius:12px;padding:12px;font-size:16px}.btn{width:100%;border:0;border-radius:14px;padding:13px;background:#126b3f;color:white;font-weight:800;font-size:15px;margin-top:14px}
+.hint,.footer{font-size:12px;color:#667085;line-height:1.5}.footer{text-align:center;margin:20px}
+</style></head><body><div class="wrap">
+<section class="hero"><div class="top"><div class="tag">TZL · TAKİP</div><div class="status" id="status">Veri hazırlanıyor…</div></div>
+<div class="price" id="price">0,140142 TL</div><div class="unit">Fon birim fiyatı</div><div class="change" id="change">Günlük değişim: —</div></section>
+<div class="grid">
+<div class="card"><div class="label">YATIRILAN</div><div class="value" id="invested">—</div></div>
+<div class="card"><div class="label">GÜNCEL DEĞER</div><div class="value big" id="current">—</div></div>
+<div class="card"><div class="label">KÂR / ZARAR</div><div class="value" id="profit">—</div></div>
+<div class="card"><div class="label">FON ADEDİ</div><div class="value" id="units">—</div></div>
+<div class="card wide"><div class="row"><span>Aylık ekleme</span><strong id="monthly">—</strong></div>
+<div class="row"><span>Ortalama alış fiyatı</span><strong id="buy">—</strong></div><div class="row"><span>Son veri</span><strong id="updated">—</strong></div></div></div>
+<div class="section">Ayarlar ⚙️</div><div class="card">
+<label>Başlangıç yatırımı (TL)<input id="initial" type="number" step=".01"></label>
+<label>Aylık ekleme (TL)<input id="monthlyInput" type="number" step=".01"></label>
+<label>Alış fiyatı (TL)<input id="buyInput" type="number" step=".000001"></label>
+<label>Toplam fon adedi <span class="hint">(boş bırakırsan başlangıçtan hesaplanır)</span><input id="unitsInput" type="number" step=".000001"></label>
+<button class="btn" id="save">Kaydet ve hesapla</button>
+<p class="hint">Aylık eklemeler bilgi amaçlıdır. Gerçek maliyet için işlem geçmişi gerekir.</p></div>
+<div class="footer">TZL · Ziraat Portföy Para Piyasası (TL) Fonu<br>Veri kaynağı: Ziraat Portföy / TEFAS · Fiyatlar gecikmeli olabilir.</div>
+</div>
+<script>
+const D={initial:155000,monthly:5000,buyPrice:.140142,units:null};
+let s=JSON.parse(localStorage.getItem("tzlSettings")||"null")||D;
+let data={price:.140142,daily_change:null,updated_at:"2026-09-06"};
+const money=n=>new Intl.NumberFormat("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(n)+" TL";
+const number=n=>new Intl.NumberFormat("tr-TR",{minimumFractionDigits:0,maximumFractionDigits:6}).format(n);
+function inputs(){initial.value=s.initial;monthlyInput.value=s.monthly;buyInput.value=s.buyPrice;unitsInput.value=s.units??""}
+function render(){let p=+data.price||0,b=+s.buyPrice||p||1,u=s.units==null?+s.initial/b:+s.units,v=u*p,g=v-(+s.initial||0);
+price.textContent=number(p)+" TL";change.textContent="Günlük değişim: "+(data.daily_change==null?"—":Number(data.daily_change).toFixed(3).replace(".",",")+"%");
+invested.textContent=money(+s.initial);current.textContent=money(v);profit.textContent=(g>=0?"+":"")+money(g);profit.className="value "+(g>=0?"profit":"loss");units.textContent=number(u);monthly.textContent=money(+s.monthly);buy.textContent=number(b)+" TL";updated.textContent=data.updated_at||"—";status.textContent="Veri hazır"}
+save.onclick=()=>{s={initial:+initial.value||0,monthly:+monthlyInput.value||0,buyPrice:+buyInput.value||.140142,units:unitsInput.value===""?null:+unitsInput.value};localStorage.setItem("tzlSettings",JSON.stringify(s));render()};
+inputs();fetch("data.json?"+Date.now()).then(r=>r.json()).then(x=>{data=x;render()}).catch(render);
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script></body></html>
